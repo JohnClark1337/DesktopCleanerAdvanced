@@ -110,6 +110,7 @@ def dealwithOneDrive(stype, run=False, q=False):
                 else:
                     print("Please respond 'yes' or 'no'\n")
         else:
+            loc = "OneDrive/" + loc
             if stype.upper() == "BASIC":
                 basicClean(1)
             elif stype.upper() == "ADVANCED":

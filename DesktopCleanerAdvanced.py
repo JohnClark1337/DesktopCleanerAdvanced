@@ -91,7 +91,7 @@ Arguments:
 def dealwithOneDrive(stype, run=False, q=False):
     loopy = False
     global loc
-    if (os.path.isdir(str(Path.home() + "/OneDrive/" + loc)) and (run == True) and (stype.upper() == "BASIC" or stype.upper() == "ADVANCED")):
+    if (os.path.isdir(str(Path.home()) + "/OneDrive/" + loc) and (run == True) and (stype.upper() == "BASIC" or stype.upper() == "ADVANCED")):
         if(q == False):
             while loopy == False:
                 scanme = input("Would you like to scan the OneDrive " + loc + " folder?")

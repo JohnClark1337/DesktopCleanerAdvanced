@@ -243,11 +243,11 @@ while x == False:
                 loc = "Pictures"
                 advancedClean()
                 y = True
-            elif selection.upper() == "Videos":
+            elif selection.upper() == "VIDEOS":
                 loc = "Videos"
                 advancedClean()
                 y = True
-            elif selection.upper() == "Music":
+            elif selection.upper() == "MUSIC":
                 loc = "Music"
                 advancedClean()
                 y = True

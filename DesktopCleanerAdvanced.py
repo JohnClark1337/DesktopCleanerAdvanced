@@ -234,7 +234,7 @@ while x == False:
         print("Advanced Clean")
         y = False
         while y == False:
-            selection = input("Perform Advanced Clean on Pictures or Documents Folder? ")
+            selection = input("Perform Advanced Clean on Pictures, Documents, Videos, or Music Folder? ")
             if selection.upper() == "DOCUMENTS":
                 loc = "Documents"
                 advancedClean()

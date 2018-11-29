@@ -199,7 +199,7 @@ def advancedClean():
 x = False
 #Initial selection screen
 while x == False:
-    here = input("Select User folder to organize('Documents', 'Videos', 'Pictures', 'Music')\n'Full' to organize all, or 'q' to quit\n(For Advanced Clean type 'Advanced')\n:  ")
+    here = input("Select User folder to organize('Desktop', 'Downloads')\n'Full' to organize all, or 'q' to quit\n(For Advanced Clean type 'Advanced')\n:  ")
     if here.upper() == "DESKTOP":
         loc = "Desktop"
         basicClean(1)

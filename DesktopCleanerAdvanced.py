@@ -40,9 +40,15 @@ advancedDictionary = {"Word Documents": ["DOC", "DOCX", "ODT", "WPD", "WPS"],
 #don't move these
 dontMove = ["Folders", "Shortcuts", "Executables"]
 
+#for yes and no questions
+okDictionary = {"YES", "Y", "OK", "OKAY", "PLEASE", "PLEASE DO", "I HAVE BEEN WAITING FOR THIS MOMENT"}
+noDictionary = {"NO", "HELL NO!", "N", "NEIN", "PLEASE DON'T", "I DO NOT BELIEVE THAT WILL BE NECESSARY"}
+
 #the center of the universe (location)
 loc = ''
 
+#OneDrive sucks
+oneLocation = {"OneDrive/Documents", "OneDrive/Pictures", "OneDrive/Music", "OneDrive/Videos", "OneDrive/Desktop"}
 
 """
 Making folder for folders and placing folders in folder
@@ -70,6 +76,45 @@ def dealWithFolders(h, l, i):
             print(i + " was left alone")
     else:
         print(i + " was left alone")
+
+
+"""
+I'm sure you love all those new onedrive folders in 1809. Let's oraganize them.
+Arguments:
+    stype - the type of scan to be run (options are BASIC or ADVANCED)
+    run - should the function be run?
+    q - boolean, has the question been asked already. If false (default) will ask question in function
+
+
+"""
+
+def dealwithOneDrive(stype, run=False, q=False):
+    loopy = False
+    global loc
+    if (os.path.isdir(str(Path.home()) + "/OneDrive/" + loc) and (run == True) and (stype.upper() == "BASIC" or stype.upper() == "ADVANCED")):
+        if(q == False):
+            while loopy == False:
+                scanme = input("Would you like to scan the OneDrive " + loc + " folder?")
+                if scanme.upper() in okDictionary:
+                    loc = "OneDrive/" + loc
+                    loopy = True
+                    if stype.upper() == "BASIC":
+                        basicClean(1)
+                    elif stype.upper() == "ADVANCED":
+                        advancedClean()
+                    else:
+                        print("Error in stype")
+                elif scanme.upper() in noDictionary:
+                    loopy = True
+                    print("Avoiding OneDrive folder")
+                else:
+                    print("Please respond 'yes' or 'no'\n")
+        else:
+            loc = "OneDrive/" + loc
+            if stype.upper() == "BASIC":
+                basicClean(1)
+            elif stype.upper() == "ADVANCED":
+                advancedClean()
 
 
 """
@@ -116,6 +161,9 @@ def basicClean(fol=0):
                         else:
                             if(item[0] != '~') and (item[0] != '.') and (not os.path.isfile(home + "/" + key + "/" + item)) and (not os.path.isdir(home + "/" + key + "/" + item)):
                                 try:
+                                    # if ("OneDrive/" + key) in oneLocation: #check if it's one of onedrive's folders
+                                    #     shutil.move(home + "/" + loc + "/" + item, home + "/OneDrive/" + key + "/" + item)
+                                    # else:
                                     shutil.move(home + "/" + loc + "/" + item, home + "/" + key + "/" + item)
                                 except FileNotFoundError as err:
                                     print(item + " not Found")
@@ -195,7 +243,6 @@ def advancedClean():
                             print(item + " can't be moved")
 
 
-
 x = False
 #Initial selection screen
 while x == False:
@@ -203,31 +250,53 @@ while x == False:
     if here.upper() == "DESKTOP":
         loc = "Desktop"
         basicClean(1)
+        dealwithOneDrive("basic", True)
         x = True
     elif here.upper() == "DOWNLOADS":
         loc = "Downloads"
         basicClean(1)
+        dealwithOneDrive("basic", True)
         x = True
     #runs through everything. Most advanced scans done twice to make sure
     elif here.upper() == "FULL":
+        loopyfull = False
+        runme = False
+        while loopyfull == False:
+            qfull = input("Would you like to scan OneDrive Folders as well?\n")
+            if qfull.upper() in okDictionary:
+                runme = True
+                loopyfull = True
+            elif qfull.upper() in noDictionary:
+                loopyfull = True
+            else:
+                print("Please type 'Yes' or 'No'")
         loc = "Desktop"
-        basicClean()
+        basicClean(1)
+        dealwithOneDrive("basic", runme, True)
         loc = "Downloads"
-        basicClean()
+        basicClean(1)
+        dealwithOneDrive("basic", runme, True)
         loc = "Documents"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         loc = "Pictures"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         loc = "Music"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         loc = "Videos"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         loc = "Music"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         loc = "Pictures"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         loc = "Documents"
         advancedClean()
+        dealwithOneDrive("advanced", runme, True)
         x = True
     #If advanced clean is picked
     elif here.upper() == "ADVANCED":
@@ -238,18 +307,22 @@ while x == False:
             if selection.upper() == "DOCUMENTS":
                 loc = "Documents"
                 advancedClean()
+                dealwithOneDrive("advanced", True)
                 y = True
             elif selection.upper() == "PICTURES":
                 loc = "Pictures"
                 advancedClean()
+                dealwithOneDrive("advanced", True)
                 y = True
             elif selection.upper() == "VIDEOS":
                 loc = "Videos"
                 advancedClean()
+                dealwithOneDrive("advanced", True)
                 y = True
             elif selection.upper() == "MUSIC":
                 loc = "Music"
                 advancedClean()
+                dealwithOneDrive("advanced", True)
                 y = True
             elif (selection.upper() == "Q") or (selection.upper() == "QUIT") or (selection.upper() == "EXIT"):
                 y = True

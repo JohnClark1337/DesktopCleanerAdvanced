@@ -117,6 +117,12 @@ def dealwithOneDrive(stype, run=False, q=False):
                 advancedClean()
 
 
+def macCompatible(val):
+    global loc
+    if sys.platform == 'darwin':
+        if val == 'Videos':
+            loc = 'Movies'
+
 """
 Basic Cleaning function. 
 Uses dictionary of file extensions to determine where all files within specified folder should go.
@@ -129,7 +135,9 @@ Arguments:
 """
 def basicClean(fol=0):
     #get list of all files and subdirectories on desktop or downloads
+    macCompatible(loc)
     home = str(Path.home())
+    print(home + "/" + loc)
     files = os.listdir(home + "/" + loc)
 
     for item in files:
@@ -245,6 +253,8 @@ def advancedClean():
 
 x = False
 #Initial selection screen
+if sys.platform == "darwin":
+    trueLocation["Movies"] = trueLocation.pop("Videos")
 while x == False:
     here = input("Select User folder to organize('Desktop', 'Downloads')\n'Full' to organize all, or 'q' to quit\n(For Advanced Clean type 'Advanced')\n:  ")
     if here.upper() == "DESKTOP":
@@ -261,15 +271,16 @@ while x == False:
     elif here.upper() == "FULL":
         loopyfull = False
         runme = False
-        while loopyfull == False:
-            qfull = input("Would you like to scan OneDrive Folders as well?\n")
-            if qfull.upper() in okDictionary:
-                runme = True
-                loopyfull = True
-            elif qfull.upper() in noDictionary:
-                loopyfull = True
-            else:
-                print("Please type 'Yes' or 'No'")
+        if sys.platform != "darwin":
+            while loopyfull == False:
+                qfull = input("Would you like to scan OneDrive Folders as well?\n")
+                if qfull.upper() in okDictionary:
+                    runme = True
+                    loopyfull = True
+                elif qfull.upper() in noDictionary:
+                    loopyfull = True
+                else:
+                    print("Please type 'Yes' or 'No'")
         loc = "Desktop"
         basicClean(1)
         dealwithOneDrive("basic", runme, True)
@@ -286,6 +297,7 @@ while x == False:
         advancedClean()
         dealwithOneDrive("advanced", runme, True)
         loc = "Videos"
+        macCompatible(loc)
         advancedClean()
         dealwithOneDrive("advanced", runme, True)
         loc = "Music"
@@ -316,6 +328,7 @@ while x == False:
                 y = True
             elif selection.upper() == "VIDEOS":
                 loc = "Videos"
+                macCompatible(loc)
                 advancedClean()
                 dealwithOneDrive("advanced", True)
                 y = True

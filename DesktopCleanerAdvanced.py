@@ -1,7 +1,17 @@
 import os
 import sys
 import shutil
+import logging
 from pathlib import Path
+
+LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
+logging.basicConfig(filename = os.path.expanduser('~') + '\\Documents\\pythonlogging.log',
+                    level = logging.info,
+                    format = LOG_FORMAT,
+                    filemode = 'w')
+logger = logging.getLogger()
+
+
 
 """
 Created by Jonathon Scofield
@@ -59,22 +69,31 @@ Arguments:
     Item: Item to be moved
 """
 def dealWithFolders(h, l, i):
+    logger.info("# dealWithFolders({0}, {1}, {2})".format(h, l, i))
     place = h + "/" + l + "/Folders"
     nname = place + "/" + i
     if not os.path.exists(place):
+        logger.debug("# Path does not exist. Creating folder")
         os.mkdir(place)
     if (not os.path.exists(nname) and (i not in dontMove)):
+        logger.debug("# Folder to move does not already exist in new location.")
         if(i[0] != '~' and i[0] != '.'):
+            logger.debug("# Folder is not hidden or special folder")
             try:
                 shutil.move(h + "/" + loc + "/" + i, place + "/" + i)
+                logger.debug("# Moving folder {0} to new location {1}".format(i, nname))
                 print(i + " moved to Folders")
             except FileNotFoundError as err:
+                logger.error("# Problem: " + err)
                 print(i + " not Found")
             except PermissionError as pe:
+                logger.error("# Problem: " + pe)
                 print(i + " can't be moved")
         else:
+            logger.debug("# Folder does not begin with '~' or with '.'")
             print(i + " was left alone")
     else:
+        logger.debug("# Folder exists in new location already, or is unmovable folder")
         print(i + " was left alone")
 
 
@@ -89,39 +108,45 @@ Arguments:
 """
 
 def dealwithOneDrive(stype, run=False, q=False):
+    logger.info("# dealwithOneDrive({0}, {1}, {2})".format(stype, run, q))
     loopy = False
     global loc
     if (os.path.isdir(str(Path.home()) + "/OneDrive/" + loc) and (run == True) and (stype.upper() == "BASIC" or stype.upper() == "ADVANCED")):
+        logger.debug("# OneDrive directory exists. User said to scan through directory. Scan type is 'Basic' or 'Advanced'")
         if(q == False):
+            logger.debug("# Not auto-running OneDrive folder scans")
             while loopy == False:
                 scanme = input("Would you like to scan the OneDrive " + loc + " folder?")
                 if scanme.upper() in okDictionary:
+                    logger.debug("# User agreed to scan")
                     loc = "OneDrive/" + loc
                     loopy = True
                     if stype.upper() == "BASIC":
+                        logger.debug("# Running Basic scan on OneDrive folder {}".format(loc))
                         basicClean(1)
                     elif stype.upper() == "ADVANCED":
+                        logger.debug("# Running Advanced scan on OneDrive folder {}".format(loc))
                         advancedClean()
                     else:
+                        logger.debug("# Error in stype")
                         print("Error in stype")
                 elif scanme.upper() in noDictionary:
+                    logger.debug("# User said no to scanning OneDrive folder")
                     loopy = True
                     print("Avoiding OneDrive folder")
                 else:
+                    logger.debug("# User input incorrect")
                     print("Please respond 'yes' or 'no'\n")
         else:
+            logger.debug("# Auto-running OneDrive Scans")
             loc = "OneDrive/" + loc
             if stype.upper() == "BASIC":
+                logger.debug("# Running Basic scan of OneDrive folder {}".format(loc))
                 basicClean(1)
             elif stype.upper() == "ADVANCED":
+                logger.debug("# Running Advanced scan of OneDrive folder {}".format(loc))
                 advancedClean()
 
-
-def macCompatible(val):
-    global loc
-    if sys.platform == 'darwin':
-        if val == 'Videos':
-            loc = 'Movies'
 
 """
 Basic Cleaning function. 
@@ -134,17 +159,19 @@ Arguments:
 
 """
 def basicClean(fol=0):
+    logger.info("basicClean({})".format(fol))
     #get list of all files and subdirectories on desktop or downloads
-    macCompatible(loc)
     home = str(Path.home())
-    print(home + "/" + loc)
     files = os.listdir(home + "/" + loc)
 
     for item in files:
+        logger.debug("# Getting all files in directory {}".format(loc))
         t = os.path.splitext(item)
         #Test if file is directory, if it is make a 'folders' directory on desktop and place them there
         if os.path.isdir(home + "/" + loc + "/" + item):
+            logger.debug("# Directory Found")
             if fol == 1:
+                logger.debug("# Dealing with directory")
                 dealWithFolders(home, loc, item)
         #If item is a file
         else:
@@ -152,37 +179,52 @@ def basicClean(fol=0):
             for key, value in trueLocation.items():
                 for e in value: 
                     if t[1][1:].upper() == e:
+                        logger.debug("# Found filetype in sorting list")
                         #Make folders to put Shortcuts and Executables and move those files there
                         if (key == "Shortcut") or (key == "Executables"):
+                            logger.debug("# File is shortcut or executable")
                             s = home + "/" + loc + "/" + key
                             if not os.path.exists(s):
+                                logger.debug("# Path for filetype sorting doesn't exist. Creating...")
                                 os.mkdir(s)
                             if not os.path.isfile(s + "/" + item):
+                                logger.debug("# File doesn't exists in path.")
                                 if(item[0] != '~' and item[0] != '.'):
                                     try:
                                         shutil.move(home + "/" + loc + "/" + item, s + "/" + item)
+                                        logger.debug("# Attempting to move..")
                                     except FileNotFoundError as err:
+                                        logger.debug("# Problem: {}".format(err))
                                         print(item + " not Found")
                                     except PermissionError as pe:
+                                        logger.debug("# Problem: {}".format(pe))
                                         print(item + " can't be moved")
                         #Move everything else where it needs to be
                         else:
                             if(item[0] != '~') and (item[0] != '.') and (not os.path.isfile(home + "/" + key + "/" + item)) and (not os.path.isdir(home + "/" + key + "/" + item)):
+                                logger.debug("# File does not begin with '~' or '.'. File does not already exists in new Directory.")
                                 try:
                                     # if ("OneDrive/" + key) in oneLocation: #check if it's one of onedrive's folders
                                     #     shutil.move(home + "/" + loc + "/" + item, home + "/OneDrive/" + key + "/" + item)
                                     # else:
                                     shutil.move(home + "/" + loc + "/" + item, home + "/" + key + "/" + item)
+                                    logger.debug("# Attempting to move...")
                                 except FileNotFoundError as err:
+                                    logger.debug("# Problem: {}".format(err))
                                     print(item + " not Found")
                                 except PermissionError as pe:
+                                    logger.debug("# Problem: {}".format(pe))
                                     print(item + " can't be moved")
                         #Give user clue as to what's going on
                                 if fol == 1:
-                                    print("Found {}".format(item) + " and moved to " + key)
+                                    mess1 = "Found {}".format(item) + " and moved to " + key
+                                    print(mess1)
+                                    logger.debug(mess1)
                             else:
                                 if fol == 1:
-                                    print("Found {}".format(item) + " and left alone")
+                                    mess2 = "Found {}".format(item) + " and left alone"
+                                    print(mess2)
+                                    logger.debug(mess2)
 
 """
 Runs thorough scan of specific folders.
@@ -199,7 +241,7 @@ a directory based on the file extension and move the item there.
     Arguments: None, don't even try
 """
 def advancedClean():
-    #print("Advanced Clean not yet implemented")
+    logger.info("advancedClean()")
     #Figures out what files need to be grouped together into a folder
     allofthem = []
     moreThan3 = []
@@ -209,10 +251,12 @@ def advancedClean():
     for item in files:
         t = os.path.splitext(item)
         if os.path.isdir(home + "/" + loc + "/" + item):
+            logger.debug(item + " is a folder")
             print("Folder " + item + " detected")
         else:
             allofthem.append(t[1])
             if (allofthem.count(t[1]) > 3) and (moreThan3.count(t[1]) == 0):
+                logger.debug("# There are more than 3 {}. Adding to list to sort.".format(t[1]))
                 moreThan3.append(t[1])
     #Grabs files and puts them in folders
     for item in files:
@@ -223,38 +267,48 @@ def advancedClean():
             for key, value in advancedDictionary.items():
                 for z in value:
                     if (t[1][1:].upper() == z) and (t[1] in moreThan3):
+                        logger.debug("# {0} in dictionary. {1} has more than 3 instances".format(t[1][1:], t[1]))
                         s = home + "/" + loc + "/" + key
                         if not os.path.exists(s):
+                            logger.debug("# Path {0} does not exist. Making entry.".format(s))
                             os.mkdir(s)
                         if not os.path.isfile(s + "/" + item):
+                            logger.debug("# File {0} does not exist in path {1}".format(item, s))
                             if(item[0] != '~' and item[0] != '.'):
+                                logger.debug("# File does not begin with '~' or '.'")
                                 try:
                                     shutil.move(home + "/" + loc + "/" + item, s + "/" + item)
+                                    logger.debug("# Attempting to move {0} to {1}".format(item, s))
                                     print("Found " + item + " and moving to " + s)
                                 except FileNotFoundError as err:
+                                    logger.debug("# Problem: {}".format(err))
                                     print(item + " not Found")
                                 except PermissionError as pe:
+                                    logger.debug("# Problem: {}".format(pe))
                                     print(item + " can't be moved")
             #If not in dictionary, combine into generic folders
             if os.path.exists(home + "/" + loc + "/" + item):
                 nameFolder = home + "/" + loc + "/" + t[1][1:].upper()
                 if (not os.path.exists(nameFolder)) and (t[1] in moreThan3) and (item[0] != "~") and (item[0] != '.'):
+                    logger.debug("# Generic named folder {0} does not exist\n# {1} has more than 3 instances\n# File name does not begin with '~' or '.'\n# Making folder")
                     os.mkdir(nameFolder)
                 if (not os.path.isfile(nameFolder + "/" + item)) and (os.path.exists(nameFolder)) and (not os.path.isdir(nameFolder + "/" + item)):
+                    logger.debug("# File {0} does not exist in {1}".format(item, nameFolder))
                     if(item[0] != '~' and item[0] != '.'):
                         try:
                             shutil.move(home + "/" + loc + "/" + item, nameFolder + "/" + item)
+                            logger.debug("# Attempting to move {0} to {1}".format(item, loc))
                             print("Found " + item + " and moving to " + nameFolder)
                         except FileNotFoundError as err:
+                            logger.debug("# Problem: {}".format(err))
                             print(item + " not Found")
                         except PermissionError as pe:
+                            logger.debug("# Problem: {}".format(pe))
                             print(item + " can't be moved")
 
 
 x = False
 #Initial selection screen
-if sys.platform == "darwin":
-    trueLocation["Movies"] = trueLocation.pop("Videos")
 while x == False:
     here = input("Select User folder to organize('Desktop', 'Downloads')\n'Full' to organize all, or 'q' to quit\n(For Advanced Clean type 'Advanced')\n:  ")
     if here.upper() == "DESKTOP":
@@ -271,16 +325,15 @@ while x == False:
     elif here.upper() == "FULL":
         loopyfull = False
         runme = False
-        if sys.platform != "darwin":
-            while loopyfull == False:
-                qfull = input("Would you like to scan OneDrive Folders as well?\n")
-                if qfull.upper() in okDictionary:
-                    runme = True
-                    loopyfull = True
-                elif qfull.upper() in noDictionary:
-                    loopyfull = True
-                else:
-                    print("Please type 'Yes' or 'No'")
+        while loopyfull == False:
+            qfull = input("Would you like to scan OneDrive Folders as well?\n")
+            if qfull.upper() in okDictionary:
+                runme = True
+                loopyfull = True
+            elif qfull.upper() in noDictionary:
+                loopyfull = True
+            else:
+                print("Please type 'Yes' or 'No'")
         loc = "Desktop"
         basicClean(1)
         dealwithOneDrive("basic", runme, True)
@@ -297,7 +350,6 @@ while x == False:
         advancedClean()
         dealwithOneDrive("advanced", runme, True)
         loc = "Videos"
-        macCompatible(loc)
         advancedClean()
         dealwithOneDrive("advanced", runme, True)
         loc = "Music"
@@ -328,7 +380,6 @@ while x == False:
                 y = True
             elif selection.upper() == "VIDEOS":
                 loc = "Videos"
-                macCompatible(loc)
                 advancedClean()
                 dealwithOneDrive("advanced", True)
                 y = True
